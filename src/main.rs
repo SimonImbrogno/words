@@ -1,8 +1,13 @@
+#![allow(dead_code)]
+
 extern crate regex;
 
 mod trie;
-
 use trie::Trie;
+
+mod markov;
+use markov::MarkovTable;
+
 use std::fs;
 use std::env;
 use regex::Regex;
@@ -47,8 +52,16 @@ fn main() -> Result<(), Box<std::error::Error>>
     }
   }
 
-  trie.print_contents();
-  println!("\n{} unique words.", trie.get_count());
+  // trie.print_contents();
+  println!("\n\n{} unique words.", trie.get_count());
+
+  let mut mt = MarkovTable::new(3);
+  for word in trie.get_contents() { mt.record(&word); }
+
+  for i in 0..1000 {
+    let result = mt.generate().unwrap();
+    if result.len() > 3 { println!("{}", result); }
+  }
 
   return Ok(());
 }

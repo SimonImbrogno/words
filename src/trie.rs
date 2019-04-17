@@ -124,6 +124,36 @@ impl Trie
     }
   }
 
+  pub fn get_contents(&self) -> Vec<String>
+  {
+    return self.get_contents_recur(true, &mut String::with_capacity(256));
+  }
+
+  fn get_contents_recur(&self, compact: bool, char_stack: &mut String) -> Vec<String>
+  {
+    let mut result = Vec::new();
+    if !self.root
+    {
+      char_stack.push(self.label);
+      if self.terminal { result.push(char_stack.clone()) }
+    }
+
+    for elem in self.next.iter()
+    {
+      if let Some(sub) = elem
+      {
+        let mut sub_result = sub.get_contents_recur(compact, char_stack);
+        result.append(&mut sub_result);
+      }
+    }
+
+    if !self.root {
+      char_stack.pop();
+    }
+
+    return result;
+  }
+
   pub fn print_contents(&self)
   {
     self.print_contents_recur(true, &mut String::with_capacity(256));
