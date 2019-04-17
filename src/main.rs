@@ -1,8 +1,11 @@
-mod trie;
-use trie::Trie;
+extern crate regex;
 
+mod trie;
+
+use trie::Trie;
 use std::fs;
 use std::env;
+use regex::Regex;
 
 fn read_file(path: &std::path::Path) -> String
 {
@@ -19,7 +22,8 @@ fn main() -> Result<(), Box<std::error::Error>>
   let mut path = env::current_dir().unwrap();
   path.push("inputs");
 
-  let mut unique_word_count = 0;
+  let hyphens_re   = Regex::new(r"[-]").unwrap();
+  let non_alpha_re = Regex::new(r"[^a-zA-Z\s]").unwrap(); //Leave whitespace!
 
   println!("Reading files...");
   if path.is_dir()
@@ -32,18 +36,19 @@ fn main() -> Result<(), Box<std::error::Error>>
       if !file_path.is_dir()
       {
         let file_contents = read_file(&file_path);
+        let file_contents = hyphens_re.replace_all(&file_contents, " ");
+        let file_contents = non_alpha_re.replace_all(&file_contents, "");
 
         for word in file_contents.split_whitespace()
         {
-          let string = word.to_string().replace(".", "");
-          if trie.put(string) == true { unique_word_count += 1 };
+          if word.len() > 0 { trie.put(word.to_string()); }
         }
       }
     }
   }
 
   trie.print_contents();
-  println!("{} unique words.", unique_word_count);
+  println!("\n{} unique words.", trie.get_count());
 
   return Ok(());
 }

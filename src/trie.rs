@@ -6,12 +6,13 @@ pub struct Trie
   root: bool,
   terminal: bool,
   label: char,
+  count: u32,
   next: [Option<Box<Trie>>; 26],
 }
 
 impl fmt::Display for Trie {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} '{}' -> [", self.terminal, self.label)?;
+    write!(f, "{} '{}' ({}) -> [", if self.terminal { "x" } else {" "}, self.label, self.count)?;
 
     let mut first = true;
     for elem in self.next.iter()
@@ -47,6 +48,7 @@ impl Trie
   // Constructor
   fn new_branch(label: char) -> Trie {
     Trie {
+      count: 0,
       root: false,
       terminal: false,
       label: label,
@@ -88,27 +90,36 @@ impl Trie
       };
 
       let sub_tree = self.get_sub(first_char);
-      return sub_tree.put(key);
+
+      let result = sub_tree.put(key);
+      if result { self.count += 1; }
+      return result;
     }
     else
     {
       if self.terminal == false
       {
         self.terminal = true;
+        self.count += 1;
         return true;
       }
       else { return false; }
     }
   }
 
-  pub fn print_all(&self)
+  pub fn get_count(&self) -> u32
+  {
+    return self.count;
+  }
+
+  pub fn print_self(&self)
   {
     println!("{}", self);
     for elem in self.next.iter()
     {
       if let Some(sub) = elem
       {
-        sub.print_all();
+        sub.print_self();
       }
     }
   }
